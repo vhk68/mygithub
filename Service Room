@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แอปพลิเคชันจองห้อง Service Room</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            background-color: #3b82f6; /* Blue-500 */
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #e0e7ff; /* Indigo-100 */
+            color: #3b82f6;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db; /* Gray-300 */
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6; /* Blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary {
+            background-color: #22c55e; /* Green-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #16a34a; /* Green-600 */
+        }
+        .btn-secondary {
+            background-color: #ef4444; /* Red-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: #dc2626; /* Red-600 */
+        }
+        .btn-edit {
+            background-color: #f59e0b; /* Amber-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-edit:hover {
+            background-color: #d97706; /* Amber-600 */
+        }
+        .btn-toggle-confirm {
+            background-color: #84cc16; /* Lime-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-toggle-confirm:hover {
+            background-color: #65a30d; /* Lime-600;
+        }
+        .table-container {
+            overflow-x: auto; /* Enable horizontal scrolling for tables on small screens */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; /* Gray-200 */
+        }
+        th {
+            background-color: #f9fafb; /* Gray-50 */
+            font-weight: 600;
+            color: #4b5563; /* Gray-700 */
+            white-space: nowrap; /* Prevent wrapping in headers */
+        }
+        tr:hover {
+            background-color: #f3f4f6; /* Gray-100 */
+        }
+        .confirmed-booking {
+            text-decoration: line-through;
+            color: #6b7280; /* Gray-500 */
+            background-color: #f9fafb; /* Gray-50 */
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.5rem;
+        }
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: #4ade80; /* Green-300 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        /* Dashboard Room Icon Styles */
+        .room-icon {
+            border: 1px solid #e5e7eb; /* Gray-200 */
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .room-icon.available {
+            background-color: white;
+            color: #333;
+        }
+        .room-icon.booked {
+            background-color: #22c55e; /* Green-500 */
+            color: white;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">แอปพลิเคชันจองห้อง Service Room</h1>
+
+        <!-- Navigation Tabs -->
+        <div class="flex justify-center mb-6 bg-white p-2 rounded-xl shadow-md">
+            <button id="bookTab" class="tab-button active">จองห้อง</button>
+            <button id="summaryTab" class="tab-button ml-2">สรุปการจอง</button>
+            <button id="dashboardTab" class="tab-button ml-2">สถานะห้อง</button>
+        </div>
+
+        <!-- Book Room Section -->
+        <div id="bookSection" class="card">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">บันทึกการจองห้องใหม่</h2>
+            <form id="bookingForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="bookingDate" class="block text-sm font-medium text-gray-700 mb-1">วันที่จอง:</label>
+                    <input type="date" id="bookingDate" class="form-input" required>
+                </div>
+                <div>
+                    <label for="roomSelect" class="block text-sm font-medium text-gray-700 mb-1">เลือกห้อง:</label>
+                    <select id="roomSelect" class="form-select" required>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div id="otherRoomDetailsContainer" class="hidden">
+                    <label for="otherRoomDetails" class="block text-sm font-medium text-gray-700 mb-1">ระบุห้องอื่นๆ:</label>
+                    <input type="text" id="otherRoomDetails" class="form-input" placeholder="เช่น ห้องอาหาร, ห้องสมุด">
+                </div>
+                <div>
+                    <label for="startTime" class="block text-sm font-medium text-gray-700 mb-1">เวลาเริ่มต้น:</label>
+                    <input type="time" id="startTime" class="form-input" required>
+                </div>
+                <div>
+                    <label for="endTime" class="block text-sm font-medium text-gray-700 mb-1">เวลาสิ้นสุด:</label>
+                    <input type="time" id="endTime" class="form-input" required>
+                </div>
+                <div>
+                    <label for="bookedBy" class="block text-sm font-medium text-gray-700 mb-1">ผู้จอง:</label>
+                    <input type="text" id="bookedBy" class="form-input" placeholder="ชื่อผู้จอง" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="purpose" class="block text-sm font-medium text-gray-700 mb-1">วัตถุประสงค์:</label>
+                    <textarea id="purpose" class="form-textarea h-24 resize-y" placeholder="เช่น ประชุมทีม, ปฏิบัติธรรม"></textarea>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" id="submitBtn" class="btn-primary">เพิ่มการจอง</button>
+                    <button type="button" id="cancelEditBtn" class="btn-secondary ml-2 hidden">ยกเลิกการแก้ไข</button>
+                </div>
+            </form>
+
+            <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">รายการจองทั้งหมด</h3>
+            <div class="table-container">
+                <table id="bookingTable" class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>ห้อง</th>
+                            <th>เวลา</th>
+                            <th>ผู้จอง</th>
+                            <th>วัตถุประสงค์</th>
+                            <th>สถานะ</th>
+                            <th>การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Booking entries will be rendered here -->
+                    </tbody>
+                </table>
+            </div>
+            <p id="noEntriesMessage" class="text-gray-500 text-center mt-4 hidden">ยังไม่มีรายการจอง</p>
+        </div>
+
+        <!-- Summary Section -->
+        <div id="summarySection" class="card hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">สรุปการจอง</h2>
+
+            <!-- Summary Type Selection -->
+            <div class="mb-6 flex flex-wrap gap-2">
+                <button id="dailySummaryBtn" class="tab-button active">รายวัน</button>
+                <button id="weeklySummaryBtn" class="tab-button">รายสัปดาห์</button>
+                <button id="monthlySummaryBtn" class="tab-button">รายเดือน</button>
+                <button id="yearlySummaryBtn" class="tab-button">รายปี</button>
+            </div>
+
+            <!-- Daily Summary View -->
+            <div id="dailySummaryView" class="summary-view">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">สรุปการจองรายวัน</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="date" id="summaryDate" class="form-input flex-grow">
+                    <button id="showDailySummaryBtn" class="btn-primary flex-shrink-0">แสดงสรุป</button>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p class="text-lg font-medium text-blue-800">การจองรวมสำหรับ <span id="dailySummaryDateDisplay">วันนี้</span>: <span id="dailyTotalBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-green-700">ยืนยันแล้ว: <span id="dailyConfirmedBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-red-700">ยังไม่ยืนยัน: <span id="dailyPendingBookings" class="font-bold">0</span> รายการ</p>
+                </div>
+                <div class="table-container">
+                    <table id="dailySummaryTable" class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>ห้อง</th>
+                                <th>เวลา</th>
+                                <th>ผู้จอง</th>
+                                <th>วัตถุประสงค์</th>
+                                <th>สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Daily summary entries will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noDailySummaryMessage" class="text-gray-500 text-center mt-4 hidden">ไม่พบรายการจองสำหรับวันนี้</p>
+                <button id="copyDailySummaryBtn" class="btn-primary mt-4 w-full sm:w-auto">คัดลอกสรุปรายวัน</button>
+            </div>
+
+            <!-- Weekly Summary View -->
+            <div id="weeklySummaryView" class="summary-view hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">สรุปการจองรายสัปดาห์</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="week" id="summaryWeek" class="form-input flex-grow">
+                    <button id="showWeeklySummaryBtn" class="btn-primary flex-shrink-0">แสดงสรุป</button>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p class="text-lg font-medium text-blue-800">การจองรวมสำหรับ <span id="weeklySummaryWeekDisplay">สัปดาห์นี้</span>: <span id="weeklyTotalBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-green-700">ยืนยันแล้ว: <span id="weeklyConfirmedBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-red-700">ยังไม่ยืนยัน: <span id="weeklyPendingBookings" class="font-bold">0</span> รายการ</p>
+                </div>
+                <div class="table-container">
+                    <table id="weeklySummaryTable" class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>รวม</th>
+                                <th>ยืนยันแล้ว</th>
+                                <th>ยังไม่ยืนยัน</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Weekly summary entries will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noWeeklySummaryMessage" class="text-gray-500 text-center mt-4 hidden">ไม่พบรายการจองสำหรับสัปดาห์นี้</p>
+                <button id="copyWeeklySummaryBtn" class="btn-primary mt-4 w-full sm:w-auto">คัดลอกสรุปรายสัปดาห์</button>
+            </div>
+
+            <!-- Monthly Summary View -->
+            <div id="monthlySummaryView" class="summary-view hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">สรุปการจองรายเดือน</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="month" id="summaryMonth" class="form-input flex-grow">
+                    <button id="showMonthlySummaryBtn" class="btn-primary flex-shrink-0">แสดงสรุป</button>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p class="text-lg font-medium text-blue-800">การจองรวมสำหรับ <span id="monthlySummaryMonthDisplay">เดือนนี้</span>: <span id="monthlyTotalBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-green-700">ยืนยันแล้ว: <span id="monthlyConfirmedBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-red-700">ยังไม่ยืนยัน: <span id="monthlyPendingBookings" class="font-bold">0</span> รายการ</p>
+                </div>
+                <div class="table-container">
+                    <table id="monthlySummaryTable" class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>รวม</th>
+                                <th>ยืนยันแล้ว</th>
+                                <th>ยังไม่ยืนยัน</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Monthly summary entries will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noMonthlySummaryMessage" class="text-gray-500 text-center mt-4 hidden">ไม่พบรายการจองสำหรับเดือนนี้</p>
+                <button id="copyMonthlySummaryBtn" class="btn-primary mt-4 w-full sm:w-auto">คัดลอกสรุปรายเดือน</button>
+            </div>
+
+            <!-- Yearly Summary View -->
+            <div id="yearlySummaryView" class="summary-view hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">สรุปการจองรายปี</h3>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="number" id="summaryYear" class="form-input flex-grow" min="2000" max="2100" value="2024">
+                    <button id="showYearlySummaryBtn" class="btn-primary flex-shrink-0">แสดงสรุป</button>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p class="text-lg font-medium text-blue-800">การจองรวมสำหรับ <span id="yearlySummaryYearDisplay">ปีนี้</span>: <span id="yearlyTotalBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-green-700">ยืนยันแล้ว: <span id="yearlyConfirmedBookings" class="font-bold">0</span> รายการ</p>
+                    <p class="text-lg font-medium text-red-700">ยังไม่ยืนยัน: <span id="yearlyPendingBookings" class="font-bold">0</span> รายการ</p>
+                </div>
+                <div class="table-container">
+                    <table id="yearlySummaryTable" class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>เดือน</th>
+                                <th>รวม</th>
+                                <th>ยืนยันแล้ว</th>
+                                <th>ยังไม่ยืนยัน</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Yearly summary entries will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="noYearlySummaryMessage" class="text-gray-500 text-center mt-4 hidden">ไม่พบรายการจองสำหรับปีนี้</p>
+                <button id="copyYearlySummaryBtn" class="btn-primary mt-4 w-full sm:w-auto">คัดลอกสรุปรายปี</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="card hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">สถานะห้องทั้งหมด</h2>
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <input type="date" id="summaryDashboardDate" class="form-input flex-grow">
+                <button id="showDashboardBtn" class="btn-primary flex-shrink-0">แสดงสถานะ</button>
+            </div>
+            <p class="text-lg font-medium text-blue-800 mb-4">สถานะห้องสำหรับ <span id="dashboardSummaryDateDisplay" class="font-bold">วันนี้</span>:</p>
+            <div id="roomIconsContainer" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <!-- Room icons will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <p id="confirmMessage" class="text-lg text-gray-700 mb-4">คุณแน่ใจหรือไม่?</p>
+            <div class="modal-buttons">
+                <button id="confirmYes" class="btn-primary px-6 py-2">ใช่</button>
+                <button id="confirmNo" class="btn-secondary px-6 py-2">ไม่</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox" class="message-box">
+        ข้อความ
+    </div>
+
+    <script>
+        // Global variables for DOM elements
+        const bookTab = document.getElementById('bookTab');
+        const summaryTab = document.getElementById('summaryTab');
+        const dashboardTab = document.getElementById('dashboardTab'); // New dashboard tab
+        const bookSection = document.getElementById('bookSection');
+        const summarySection = document.getElementById('summarySection');
+        const dashboardSection = document.getElementById('dashboardSection'); // New dashboard section
+
+        const bookingForm = document.getElementById('bookingForm');
+        const bookingDateInput = document.getElementById('bookingDate');
+        const roomSelect = document.getElementById('roomSelect');
+        const otherRoomDetailsContainer = document.getElementById('otherRoomDetailsContainer');
+        const otherRoomDetailsInput = document.getElementById('otherRoomDetails');
+        const startTimeInput = document.getElementById('startTime');
+        const endTimeInput = document.getElementById('endTime');
+        const bookedByInput = document.getElementById('bookedBy');
+        const purposeInput = document.getElementById('purpose');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const bookingTableBody = document.querySelector('#bookingTable tbody');
+        const noEntriesMessage = document.getElementById('noEntriesMessage');
+
+        const dailySummaryBtn = document.getElementById('dailySummaryBtn');
+        const weeklySummaryBtn = document.getElementById('weeklySummaryBtn');
+        const monthlySummaryBtn = document.getElementById('monthlySummaryBtn');
+        const yearlySummaryBtn = document.getElementById('yearlySummaryBtn');
+        const dailySummaryView = document.getElementById('dailySummaryView');
+        const weeklySummaryView = document.getElementById('weeklySummaryView');
+        const monthlySummaryView = document.getElementById('monthlySummaryView');
+        const yearlySummaryView = document.getElementById('yearlySummaryView');
+
+        const summaryDateInput = document.getElementById('summaryDate');
+        const showDailySummaryBtn = document.getElementById('showDailySummaryBtn');
+        const dailyTotalBookings = document.getElementById('dailyTotalBookings');
+        const dailyConfirmedBookings = document.getElementById('dailyConfirmedBookings');
+        const dailyPendingBookings = document.getElementById('dailyPendingBookings');
+        const dailySummaryDateDisplay = document.getElementById('dailySummaryDateDisplay');
+        const dailySummaryTableBody = document.querySelector('#dailySummaryTable tbody');
+        const noDailySummaryMessage = document.getElementById('noDailySummaryMessage');
+        const copyDailySummaryBtn = document.getElementById('copyDailySummaryBtn');
+
+        const summaryWeekInput = document.getElementById('summaryWeek');
+        const showWeeklySummaryBtn = document.getElementById('showWeeklySummaryBtn');
+        const weeklyTotalBookings = document.getElementById('weeklyTotalBookings');
+        const weeklyConfirmedBookings = document.getElementById('weeklyConfirmedBookings');
+        const weeklyPendingBookings = document.getElementById('weeklyPendingBookings');
+        const weeklySummaryWeekDisplay = document.getElementById('weeklySummaryWeekDisplay');
+        const weeklySummaryTableBody = document.querySelector('#weeklySummaryTable tbody');
+        const noWeeklySummaryMessage = document.getElementById('noWeeklySummaryMessage');
+        const copyWeeklySummaryBtn = document.getElementById('copyWeeklySummaryBtn');
+
+        const summaryMonthInput = document.getElementById('summaryMonth');
+        const showMonthlySummaryBtn = document.getElementById('showMonthlySummaryBtn');
+        const monthlyTotalBookings = document.getElementById('monthlyTotalBookings');
+        const monthlyConfirmedBookings = document.getElementById('monthlyConfirmedBookings');
+        const monthlyPendingBookings = document.getElementById('monthlyPendingBookings');
+        const monthlySummaryMonthDisplay = document.getElementById('monthlySummaryMonthDisplay');
+        const monthlySummaryTableBody = document.querySelector('#monthlySummaryTable tbody');
+        const noMonthlySummaryMessage = document.getElementById('noMonthlySummaryMessage');
+        const copyMonthlySummaryBtn = document.getElementById('copyMonthlySummaryBtn');
+
+        const summaryYearInput = document.getElementById('summaryYear');
+        const showYearlySummaryBtn = document.getElementById('showYearlySummaryBtn');
+        const yearlyTotalBookings = document.getElementById('yearlyTotalBookings');
+        const yearlyConfirmedBookings = document.getElementById('yearlyConfirmedBookings');
+        const yearlyPendingBookings = document.getElementById('yearlyPendingBookings');
+        const yearlySummaryYearDisplay = document.getElementById('yearlySummaryYearDisplay');
+        const yearlySummaryTableBody = document.querySelector('#yearlySummaryTable tbody');
+        const noYearlySummaryMessage = document.getElementById('noYearlySummaryMessage');
+        const copyYearlySummaryBtn = document.getElementById('copyYearlySummaryBtn');
+
+        const summaryDashboardDate = document.getElementById('summaryDashboardDate'); // New dashboard date input
+        const showDashboardBtn = document.getElementById('showDashboardBtn'); // New dashboard show button
+        const dashboardSummaryDateDisplay = document.getElementById('dashboardSummaryDateDisplay'); // New dashboard date display
+        const roomIconsContainer = document.getElementById('roomIconsContainer'); // New container for room icons
+
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmYesBtn = document.getElementById('confirmYes');
+        const confirmNoBtn = document.getElementById('confirmNo');
+        const messageBox = document.getElementById('messageBox');
+
+        // Array to store booking entries
+        let bookingEntries = [];
+        let editingEntryId = null; // To store the ID of the entry being edited
+
+        // Predefined list of rooms
+        const rooms = [
+            { value: "ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 4,5", label: "1. ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 4,5" },
+            { value: "ห้องธุรการ คอร์5 ชั้น1/2", label: "2. ห้องธุรการ คอร์5 ชั้น1/2" },
+            { value: "ห้องประชุม 1 คอร์5 ชั้น1/2", label: "3. ห้องประชุม 1 คอร์5 ชั้น1/2" },
+            { value: "ห้องประชุม 2 คอร์4 ชั้น1/2", label: "4. ห้องประชุม 2 คอร์4 ชั้น1/2" },
+            { value: "ห้องควบคุม (Control Room) คอร์มุม 4", label: "5. ห้องควบคุม (Control Room) คอร์มุม 4" },
+            { value: "ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 12,13", label: "6. ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 12,13" },
+            { value: "ห้องธุรการ คอร์12 ชั้น1/2", label: "7. ห้องธุรการ คอร์12 ชั้น1/2" },
+            { value: "ห้องประชุม 2 คอร์13 ชั้น1/2", label: "8. ห้องประชุม 2 คอร์13 ชั้น1/2" },
+            { value: "ห้องประชุม 1 คอร์12 ชั้น1/2", label: "9. ห้องประชุม 1 คอร์12 ชั้น1/2" },
+            { value: "ห้องควบคุม (Control Room) คอร์มุม 12", label: "10. ห้องควบคุม (Control Room) คอร์มุม 12" },
+            { value: "ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 20, 21", label: "11. ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 20, 21" },
+            { value: "ห้องธุรการ คอร์21 ชั้น1/2", label: "12. ห้องธุรการ คอร์21 ชั้น1/2" },
+            { value: "ห้องประชุม 2 คอร์20 ชั้น1/2", label: "13. ห้องประชุม 2 คอร์20 ชั้น1/2" },
+            { value: "ห้องประชุม 1 คอร์21 ชั้น1/2", label: "14. ห้องประชุม 1 คอร์21 ชั้น1/2" },
+            { value: "ห้องควบคุม (Control Room) คอร์มุม 20", label: "15. ห้องควบคุม (Control Room) คอร์มุม 20" },
+            { value: "ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 28,29", label: "16. ห้องปฏิบัติธรรม 500 ที่นั่ง คอร์มุม 28,29" },
+            { value: "ห้องธุรการ คอร์28 ชั้น1/2", label: "17. ห้องธุรการ คอร์28 ชั้น1/2" },
+            { value: "ห้องประชุม 2 คอร์29 ชั้น1/2", label: "18. ห้องประชุม 2 คอร์29 ชั้น1/2" },
+            { value: "ห้องประชุม 1 คอร์28 ชั้น1/2", label: "19. ห้องประชุม 1 คอร์28 ชั้น1/2" },
+            { value: "ห้องควบคุม (Control Room) คอร์มุม 29", label: "20. ห้องควบคุม (Control Room) คอร์มุม 29" },
+            { value: "ห้องปฏิสันถาร 1 คอร์ 25 ชั้น1/1", label: "21. ห้องปฏิสันถาร 1 คอร์ 25 ชั้น1/1" },
+            { value: "ห้องปฏิสันถาร 2 คอร์ 25 ชั้น1/1", label: "22. ห้องปฏิสันถาร 2 คอร์ 25 ชั้น1/1" },
+            { value: "อื่นๆ", label: "23. ห้องอื่นๆ ระบุ" }
+        ];
+
+        /**
+         * Populates the room selection dropdown.
+         */
+        function populateRoomSelect() {
+            roomSelect.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.value;
+                option.textContent = room.label;
+                roomSelect.appendChild(option);
+            });
+        }
+
+        /**
+         * Toggles visibility of the 'other room details' input based on room selection.
+         */
+        roomSelect.addEventListener('change', () => {
+            if (roomSelect.value === 'อื่นๆ') {
+                otherRoomDetailsContainer.classList.remove('hidden');
+                otherRoomDetailsInput.setAttribute('required', 'true');
+            } else {
+                otherRoomDetailsContainer.classList.add('hidden');
+                otherRoomDetailsInput.removeAttribute('required');
+                otherRoomDetailsInput.value = ''; // Clear value when hidden
+            }
+        });
+
+        /**
+         * Displays a custom message box with a given message.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error' to change background color.
+         */
+        function showMessageBox(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.style.backgroundColor = type === 'success' ? '#4ade80' : '#ef4444'; // Green-300 or Red-500
+            messageBox.style.display = 'block';
+            messageBox.style.opacity = '1';
+
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 300); // Wait for fade out to complete
+            }, 3000); // Message visible for 3 seconds
+        }
+
+        /**
+         * Shows a custom confirmation modal.
+         * @param {string} message - The message to display in the modal.
+         * @returns {Promise<boolean>} - A promise that resolves to true if confirmed, false otherwise.
+         */
+        function showConfirmModal(message) {
+            return new Promise((resolve) => {
+                confirmMessage.textContent = message;
+                confirmModal.style.display = 'flex'; // Use flex to center
+
+                const onYes = () => {
+                    confirmModal.style.display = 'none';
+                    confirmYesBtn.removeEventListener('click', onYes);
+                    confirmNoBtn.removeEventListener('click', onNo);
+                    resolve(true);
+                };
+
+                const onNo = () => {
+                    confirmModal.style.display = 'none';
+                    confirmYesBtn.removeEventListener('click', onYes);
+                    confirmNoBtn.removeEventListener('click', onNo);
+                    resolve(false);
+                };
+
+                confirmYesBtn.addEventListener('click', onYes);
+                confirmNoBtn.addEventListener('click', onNo);
+            });
+        }
+
+        /**
+         * Loads booking entries from local storage.
+         */
+        function loadEntries() {
+            try {
+                const storedEntries = localStorage.getItem('roomBookingEntries');
+                if (storedEntries) {
+                    bookingEntries = JSON.parse(storedEntries);
+                } else {
+                    bookingEntries = [];
+                }
+            } catch (error) {
+                console.error("Error loading entries from local storage:", error);
+                bookingEntries = []; // Reset if there's an error parsing
+                showMessageBox("เกิดข้อผิดพลาดในการโหลดข้อมูล", "error");
+            }
+        }
+
+        /**
+         * Saves booking entries to local storage.
+         */
+        function saveEntries() {
+            try {
+                localStorage.setItem('roomBookingEntries', JSON.stringify(bookingEntries));
+            } catch (error) {
+                console.error("Error saving entries to local storage:", error);
+                showMessageBox("เกิดข้อผิดพลาดในการบันทึกข้อมูล", "error");
+            }
+        }
+
+        /**
+         * Renders all booking entries in the table.
+         */
+        function renderEntries() {
+            bookingTableBody.innerHTML = ''; // Clear existing entries
+            if (bookingEntries.length === 0) {
+                noEntriesMessage.classList.remove('hidden');
+                bookingTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-gray-500 py-4">ยังไม่มีรายการจอง</td></tr>`;
+                return;
+            }
+            noEntriesMessage.classList.add('hidden');
+
+            // Sort entries by date in descending order, then by confirmation status (pending first), then by start time
+            const sortedEntries = [...bookingEntries].sort((a, b) => {
+                const dateComparison = new Date(b.date) - new Date(a.date);
+                if (dateComparison !== 0) return dateComparison;
+
+                const confirmationComparison = (a.isConfirmed === b.isConfirmed) ? 0 : (a.isConfirmed ? 1 : -1);
+                if (confirmationComparison !== 0) return confirmationComparison;
+
+                return a.startTime.localeCompare(b.startTime);
+            });
+
+            sortedEntries.forEach(entry => {
+                const row = bookingTableBody.insertRow();
+                if (entry.isConfirmed) {
+                    row.classList.add('confirmed-booking');
+                }
+                const roomDisplayName = entry.room === 'อื่นๆ' ? `${entry.otherRoomDetails} (อื่นๆ)` : entry.room;
+
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>${roomDisplayName}</td>
+                    <td>${entry.startTime} - ${entry.endTime}</td>
+                    <td>${entry.bookedBy}</td>
+                    <td>${entry.purpose || '-'}</td>
+                    <td>${entry.isConfirmed ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน'}</td>
+                    <td class="flex flex-col sm:flex-row gap-2">
+                        <button class="btn-toggle-confirm text-sm" data-id="${entry.id}">
+                            ${entry.isConfirmed ? 'ยกเลิกยืนยัน' : 'ยืนยัน'}
+                        </button>
+                        <button class="btn-edit text-sm" data-id="${entry.id}">แก้ไข</button>
+                        <button class="btn-secondary text-sm" data-id="${entry.id}">ลบ</button>
+                    </td>
+                `;
+                // Add event listeners for buttons
+                row.querySelector('.btn-toggle-confirm').addEventListener('click', (e) => toggleConfirm(e.target.dataset.id));
+                row.querySelector('.btn-edit').addEventListener('click', (e) => editEntry(e.target.dataset.id));
+                row.querySelector('.btn-secondary').addEventListener('click', (e) => deleteEntry(e.target.dataset.id));
+            });
+        }
+
+        /**
+         * Handles adding or updating a booking entry.
+         * @param {Event} event - The form submission event.
+         */
+        bookingForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const date = bookingDateInput.value;
+            const room = roomSelect.value;
+            const otherRoomDetails = otherRoomDetailsInput.value.trim();
+            const startTime = startTimeInput.value;
+            const endTime = endTimeInput.value;
+            const bookedBy = bookedByInput.value.trim();
+            const purpose = purposeInput.value.trim();
+
+            if (!date || !room || !startTime || !endTime || !bookedBy) {
+                showMessageBox("กรุณากรอกข้อมูล วันที่, ห้อง, เวลาเริ่มต้น, เวลาสิ้นสุด และผู้จอง", "error");
+                return;
+            }
+
+            if (room === 'อื่นๆ' && !otherRoomDetails) {
+                showMessageBox("กรุณาระบุรายละเอียดห้องอื่นๆ", "error");
+                return;
+            }
+
+            // Basic time validation
+            if (startTime >= endTime) {
+                showMessageBox("เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น", "error");
+                return;
+            }
+
+            if (editingEntryId) {
+                // Update existing entry
+                const entryIndex = bookingEntries.findIndex(entry => entry.id === editingEntryId);
+                if (entryIndex !== -1) {
+                    bookingEntries[entryIndex] = {
+                        ...bookingEntries[entryIndex], // Keep existing isConfirmed status
+                        date,
+                        room,
+                        otherRoomDetails: room === 'อื่นๆ' ? otherRoomDetails : '',
+                        startTime,
+                        endTime,
+                        bookedBy,
+                        purpose
+                    };
+                    showMessageBox("แก้ไขรายการจองเรียบร้อยแล้ว");
+                }
+                editingEntryId = null;
+                submitBtn.textContent = 'เพิ่มการจอง';
+                cancelEditBtn.classList.add('hidden');
+            } else {
+                // Add new entry
+                const newEntry = {
+                    id: Date.now().toString(), // Simple unique ID
+                    date,
+                    room,
+                    otherRoomDetails: room === 'อื่นๆ' ? otherRoomDetails : '',
+                    startTime,
+                    endTime,
+                    bookedBy,
+                    purpose,
+                    isConfirmed: false // New bookings are not confirmed by default
+                };
+                bookingEntries.push(newEntry);
+                showMessageBox("เพิ่มการจองเรียบร้อยแล้ว");
+            }
+
+            saveEntries();
+            renderEntries();
+            renderDashboard(summaryDashboardDate.value); // Update dashboard after booking change
+            bookingForm.reset(); // Clear form fields
+            roomSelect.value = ''; // Reset room selection
+            otherRoomDetailsContainer.classList.add('hidden'); // Hide other room details
+            otherRoomDetailsInput.removeAttribute('required');
+            otherRoomDetailsInput.value = '';
+        });
+
+        /**
+         * Fills the form with data of an existing entry for editing.
+         * @param {string} id - The ID of the entry to edit.
+         */
+        function editEntry(id) {
+            const entryToEdit = bookingEntries.find(entry => entry.id === id);
+            if (entryToEdit) {
+                bookingDateInput.value = entryToEdit.date;
+                roomSelect.value = entryToEdit.room;
+                if (entryToEdit.room === 'อื่นๆ') {
+                    otherRoomDetailsContainer.classList.remove('hidden');
+                    otherRoomDetailsInput.value = entryToEdit.otherRoomDetails;
+                    otherRoomDetailsInput.setAttribute('required', 'true');
+                } else {
+                    otherRoomDetailsContainer.classList.add('hidden');
+                    otherRoomDetailsInput.value = '';
+                    otherRoomDetailsInput.removeAttribute('required');
+                }
+                startTimeInput.value = entryToEdit.startTime;
+                endTimeInput.value = entryToEdit.endTime;
+                bookedByInput.value = entryToEdit.bookedBy;
+                purposeInput.value = entryToEdit.purpose;
+
+                editingEntryId = id;
+                submitBtn.textContent = 'บันทึกการแก้ไข';
+                cancelEditBtn.classList.remove('hidden');
+                bookTab.click(); // Switch to book tab if not already there
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of form
+            }
+        }
+
+        /**
+         * Cancels the current edit operation and resets the form.
+         */
+        cancelEditBtn.addEventListener('click', () => {
+            bookingForm.reset();
+            roomSelect.value = '';
+            otherRoomDetailsContainer.classList.add('hidden');
+            otherRoomDetailsInput.removeAttribute('required');
+            otherRoomDetailsInput.value = '';
+            editingEntryId = null;
+            submitBtn.textContent = 'เพิ่มการจอง';
+            cancelEditBtn.classList.add('hidden');
+            showMessageBox("ยกเลิกการแก้ไข");
+        });
+
+        /**
+         * Deletes a booking entry after confirmation.
+         * @param {string} id - The ID of the entry to delete.
+         */
+        async function deleteEntry(id) {
+            const confirmed = await showConfirmModal("คุณต้องการลบรายการจองนี้หรือไม่?");
+            if (confirmed) {
+                bookingEntries = bookingEntries.filter(entry => entry.id !== id);
+                saveEntries();
+                renderEntries();
+                renderDashboard(summaryDashboardDate.value); // Update dashboard after booking change
+                showMessageBox("ลบรายการจองเรียบร้อยแล้ว");
+                // If currently editing the deleted entry, reset form
+                if (editingEntryId === id) {
+                    bookingForm.reset();
+                    roomSelect.value = '';
+                    otherRoomDetailsContainer.classList.add('hidden');
+                    otherRoomDetailsInput.removeAttribute('required');
+                    otherRoomDetailsInput.value = '';
+                    editingEntryId = null;
+                    submitBtn.textContent = 'เพิ่มการจอง';
+                    cancelEditBtn.classList.add('hidden');
+                }
+            }
+        }
+
+        /**
+         * Toggles the confirmation status of a booking.
+         * @param {string} id - The ID of the booking to toggle.
+         */
+        function toggleConfirm(id) {
+            const entryIndex = bookingEntries.findIndex(entry => entry.id === id);
+            if (entryIndex !== -1) {
+                bookingEntries[entryIndex].isConfirmed = !bookingEntries[entryIndex].isConfirmed;
+                saveEntries();
+                renderEntries();
+                renderDashboard(summaryDashboardDate.value); // Update dashboard after booking change
+                showMessageBox(bookingEntries[entryIndex].isConfirmed ? "ยืนยันการจองแล้ว!" : "ยกเลิกสถานะยืนยัน");
+            }
+        }
+
+        // --- Section Switching Logic ---
+
+        /**
+         * Switches between book, summary, and dashboard sections.
+         * @param {string} sectionId - 'book', 'summary', or 'dashboard'.
+         */
+        function showSection(sectionId) {
+            bookSection.classList.add('hidden');
+            summarySection.classList.add('hidden');
+            dashboardSection.classList.add('hidden');
+
+            bookTab.classList.remove('active');
+            summaryTab.classList.remove('active');
+            dashboardTab.classList.remove('active');
+
+            if (sectionId === 'book') {
+                bookSection.classList.remove('hidden');
+                bookTab.classList.add('active');
+            } else if (sectionId === 'summary') {
+                summarySection.classList.remove('hidden');
+                summaryTab.classList.add('active');
+                // Default to daily summary when switching to summary tab
+                showSummaryView('daily');
+            } else if (sectionId === 'dashboard') {
+                dashboardSection.classList.remove('hidden');
+                dashboardTab.classList.add('active');
+                renderDashboard(summaryDashboardDate.value); // Render dashboard when tab is clicked
+            }
+        }
+
+        /**
+         * Switches between daily, weekly, monthly, and yearly summary views.
+         * @param {string} viewType - 'daily', 'weekly', 'monthly', or 'yearly'.
+         */
+        function showSummaryView(viewType) {
+            // Remove active class from all summary buttons
+            dailySummaryBtn.classList.remove('active');
+            weeklySummaryBtn.classList.remove('active');
+            monthlySummaryBtn.classList.remove('active');
+            yearlySummaryBtn.classList.remove('active');
+
+            // Hide all summary views
+            dailySummaryView.classList.add('hidden');
+            weeklySummaryView.classList.add('hidden');
+            monthlySummaryView.classList.add('hidden');
+            yearlySummaryView.classList.add('hidden');
+
+            // Show the selected view and set active button
+            if (viewType === 'daily') {
+                dailySummaryView.classList.remove('hidden');
+                dailySummaryBtn.classList.add('active');
+                renderDailySummary(summaryDateInput.value);
+            } else if (viewType === 'weekly') {
+                weeklySummaryView.classList.remove('hidden');
+                weeklySummaryBtn.classList.add('active');
+                renderWeeklySummary(summaryWeekInput.value);
+            } else if (viewType === 'monthly') {
+                monthlySummaryView.classList.remove('hidden');
+                monthlySummaryBtn.classList.add('active');
+                renderMonthlySummary(summaryMonthInput.value);
+            } else if (viewType === 'yearly') {
+                yearlySummaryView.classList.remove('hidden');
+                yearlySummaryBtn.classList.add('active');
+                renderYearlySummary(parseInt(summaryYearInput.value));
+            }
+        }
+
+        // Event listeners for main tabs
+        bookTab.addEventListener('click', () => showSection('book'));
+        summaryTab.addEventListener('click', () => showSection('summary'));
+        dashboardTab.addEventListener('click', () => showSection('dashboard')); // New event listener for dashboard tab
+
+        // Event listeners for summary type buttons
+        showDailySummaryBtn.addEventListener('click', () => renderDailySummary(summaryDateInput.value));
+        showWeeklySummaryBtn.addEventListener('click', () => renderWeeklySummary(summaryWeekInput.value));
+        showMonthlySummaryBtn.addEventListener('click', () => renderMonthlySummary(summaryMonthInput.value));
+        showYearlySummaryBtn.addEventListener('click', () => renderYearlySummary(parseInt(summaryYearInput.value)));
+        showDashboardBtn.addEventListener('click', () => renderDashboard(summaryDashboardDate.value)); // Event listener for dashboard date change
+
+        /**
+         * Calculates summary statistics (total, confirmed, pending) for a given set of entries.
+         * @param {Array} entries - Array of booking entries.
+         * @returns {object} - Object with total, confirmed, and pending counts.
+         */
+        function calculateSummaryStats(entries) {
+            const total = entries.length;
+            const confirmed = entries.filter(entry => entry.isConfirmed).length;
+            const pending = total - confirmed;
+            return { total, confirmed, pending };
+        }
+
+        /**
+         * Renders the daily booking summary for a given date.
+         * @param {string} dateString - Date in "YYYY-MM-DD" format.
+         */
+        function renderDailySummary(dateString) {
+            dailySummaryTableBody.innerHTML = '';
+            const filteredEntries = bookingEntries.filter(entry => entry.date === dateString);
+            const { total, confirmed, pending } = calculateSummaryStats(filteredEntries);
+
+            dailyTotalBookings.textContent = total;
+            dailyConfirmedBookings.textContent = confirmed;
+            dailyPendingBookings.textContent = pending;
+            dailySummaryDateDisplay.textContent = dateString;
+
+            if (filteredEntries.length === 0) {
+                noDailySummaryMessage.classList.remove('hidden');
+                dailySummaryTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-4">ไม่พบรายการจองสำหรับวันนี้</td></tr>`;
+            } else {
+                noDailySummaryMessage.classList.add('hidden');
+                // Sort daily entries by start time, confirmed bookings at the end
+                const sortedDailyEntries = [...filteredEntries].sort((a, b) => {
+                    if (a.isConfirmed === b.isConfirmed) {
+                        return a.startTime.localeCompare(b.startTime);
+                    }
+                    return a.isConfirmed ? 1 : -1;
+                });
+
+                sortedDailyEntries.forEach(entry => {
+                    const roomDisplayName = entry.room === 'อื่นๆ' ? `${entry.otherRoomDetails} (อื่นๆ)` : entry.room;
+                    const row = dailySummaryTableBody.insertRow();
+                    if (entry.isConfirmed) {
+                        row.classList.add('confirmed-booking');
+                    }
+                    row.innerHTML = `
+                        <td>${roomDisplayName}</td>
+                        <td>${entry.startTime} - ${entry.endTime}</td>
+                        <td>${entry.bookedBy}</td>
+                        <td>${entry.purpose || '-'}</td>
+                        <td>${entry.isConfirmed ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน'}</td>
+                    `;
+                });
+            }
+        }
+
+        /**
+         * Renders the weekly booking summary for a given week.
+         * @param {string} weekString - Week in "YYYY-WNN" format.
+         */
+        function renderWeeklySummary(weekString) {
+            weeklySummaryTableBody.innerHTML = '';
+            const [year, weekNum] = weekString.split('-W').map(Number);
+
+            // Calculate start and end date of the week
+            const firstDayOfYear = new Date(year, 0, 1);
+            const daysOffset = (weekNum - 1) * 7;
+            const startDate = new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysOffset));
+            // Adjust to the first day of the week (Sunday in some locales, Monday in others, JS week starts Sunday=0)
+            const dayOfWeek = startDate.getDay(); // 0 for Sunday, 1 for Monday
+            const startOfWeek = new Date(startDate);
+            startOfWeek.setDate(startDate.getDate() - dayOfWeek); // Adjust to Sunday
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6); // End of Saturday
+
+            const filteredEntries = bookingEntries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate >= startOfWeek && entryDate <= endOfWeek;
+            });
+
+            // Group by day and calculate stats for each day
+            const dailyStats = {};
+            const currentDate = new Date(startOfWeek);
+            for (let i = 0; i < 7; i++) {
+                const dateKey = currentDate.toISOString().split('T')[0];
+                dailyStats[dateKey] = { total: 0, confirmed: 0, pending: 0 };
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            filteredEntries.forEach(entry => {
+                const day = entry.date;
+                if (dailyStats[day]) { // Ensure the day is within the current week
+                    dailyStats[day].total++;
+                    if (entry.isConfirmed) {
+                        dailyStats[day].confirmed++;
+                    } else {
+                        dailyStats[day].pending++;
+                    }
+                }
+            });
+
+            let totalWeeklyBookings = 0;
+            let totalWeeklyConfirmed = 0;
+            let totalWeeklyPending = 0;
+
+            const sortedDays = Object.keys(dailyStats).sort();
+
+            if (filteredEntries.length === 0) {
+                noWeeklySummaryMessage.classList.remove('hidden');
+                weeklySummaryTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-4">ไม่พบรายการจองสำหรับสัปดาห์นี้</td></tr>`;
+            } else {
+                noWeeklySummaryMessage.classList.add('hidden');
+                sortedDays.forEach(day => {
+                    const stats = dailyStats[day];
+                    totalWeeklyBookings += stats.total;
+                    totalWeeklyConfirmed += stats.confirmed;
+                    totalWeeklyPending += stats.pending;
+
+                    const row = weeklySummaryTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${day}</td>
+                        <td>${stats.total}</td>
+                        <td>${stats.confirmed}</td>
+                        <td>${stats.pending}</td>
+                    `;
+                });
+            }
+            weeklySummaryWeekDisplay.textContent = `สัปดาห์ที่ ${weekNum} ปี ${year}`;
+            weeklyTotalBookings.textContent = totalWeeklyBookings;
+            weeklyConfirmedBookings.textContent = totalWeeklyConfirmed;
+            weeklyPendingBookings.textContent = totalWeeklyPending;
+        }
+
+        /**
+         * Renders the monthly booking summary for a given month.
+         * @param {string} monthString - Month in "YYYY-MM" format.
+         */
+        function renderMonthlySummary(monthString) {
+            monthlySummaryTableBody.innerHTML = '';
+            const filteredEntries = bookingEntries.filter(entry => entry.date.startsWith(monthString));
+
+            // Group by day and calculate stats for each day
+            const dailyStats = {};
+            const [year, month] = monthString.split('-').map(Number);
+            const daysInMonth = new Date(year, month, 0).getDate(); // Get number of days in the month
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateKey = `${monthString}-${String(i).padStart(2, '0')}`;
+                dailyStats[dateKey] = { total: 0, confirmed: 0, pending: 0 };
+            }
+
+            filteredEntries.forEach(entry => {
+                const day = entry.date;
+                if (dailyStats[day]) { // Ensure the day is within the current month
+                    dailyStats[day].total++;
+                    if (entry.isConfirmed) {
+                        dailyStats[day].confirmed++;
+                    } else {
+                        dailyStats[day].pending++;
+                    }
+                }
+            });
+
+            let totalMonthlyBookings = 0;
+            let totalMonthlyConfirmed = 0;
+            let totalMonthlyPending = 0;
+
+            const sortedDays = Object.keys(dailyStats).sort();
+
+            if (filteredEntries.length === 0) {
+                noMonthlySummaryMessage.classList.remove('hidden');
+                monthlySummaryTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-4">ไม่พบรายการจองสำหรับเดือนนี้</td></tr>`;
+            } else {
+                noMonthlySummaryMessage.classList.add('hidden');
+                sortedDays.forEach(day => {
+                    const stats = dailyStats[day];
+                    totalMonthlyBookings += stats.total;
+                    totalMonthlyConfirmed += stats.confirmed;
+                    totalMonthlyPending += stats.pending;
+
+                    const row = monthlySummaryTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${day}</td>
+                        <td>${stats.total}</td>
+                        <td>${stats.confirmed}</td>
+                        <td>${stats.pending}</td>
+                    `;
+                });
+            }
+            monthlySummaryMonthDisplay.textContent = monthString;
+            monthlyTotalBookings.textContent = totalMonthlyBookings;
+            monthlyConfirmedBookings.textContent = totalMonthlyConfirmed;
+            monthlyPendingBookings.textContent = totalMonthlyPending;
+        }
+
+        /**
+         * Renders the yearly booking summary for a given year.
+         * @param {number} year - The year (e.g., 2024).
+         */
+        function renderYearlySummary(year) {
+            yearlySummaryTableBody.innerHTML = '';
+            const filteredEntries = bookingEntries.filter(entry => entry.date.startsWith(year.toString()));
+
+            // Group by month and calculate stats for each month
+            const monthlyStats = {};
+            for (let i = 1; i <= 12; i++) {
+                const monthKey = `${year}-${String(i).padStart(2, '0')}`;
+                monthlyStats[monthKey] = { total: 0, confirmed: 0, pending: 0 };
+            }
+
+            filteredEntries.forEach(entry => {
+                const month = entry.date.substring(0, 7); // YYYY-MM
+                if (monthlyStats.hasOwnProperty(month)) {
+                    monthlyStats[month].total++;
+                    if (entry.isConfirmed) {
+                        monthlyStats[month].confirmed++;
+                    } else {
+                        monthlyStats[month].pending++;
+                    }
+                }
+            });
+
+            let totalYearlyBookings = 0;
+            let totalYearlyConfirmed = 0;
+            let totalYearlyPending = 0;
+
+            const sortedMonths = Object.keys(monthlyStats).sort(); // Sorts YYYY-MM correctly
+
+            if (filteredEntries.length === 0) {
+                noYearlySummaryMessage.classList.remove('hidden');
+                yearlySummaryTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-4">ไม่พบรายการจองสำหรับปีนี้</td></tr>`;
+            } else {
+                noYearlySummaryMessage.classList.add('hidden');
+                sortedMonths.forEach(monthKey => {
+                    const stats = monthlyStats[monthKey];
+                    totalYearlyBookings += stats.total;
+                    totalYearlyConfirmed += stats.confirmed;
+                    totalYearlyPending += stats.pending;
+
+                    const row = yearlySummaryTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${monthKey}</td>
+                        <td>${stats.total}</td>
+                        <td>${stats.confirmed}</td>
+                        <td>${stats.pending}</td>
+                    `;
+                });
+            }
+            yearlySummaryYearDisplay.textContent = year;
+            yearlyTotalBookings.textContent = totalYearlyBookings;
+            yearlyConfirmedBookings.textContent = totalYearlyConfirmed;
+            yearlyPendingBookings.textContent = totalYearlyPending;
+        }
+
+        /**
+         * Renders the dashboard with room status icons for a given date.
+         * @param {string} dateString - Date in "YYYY-MM-DD" format.
+         */
+        function renderDashboard(dateString) {
+            roomIconsContainer.innerHTML = ''; // Clear existing icons
+            dashboardSummaryDateDisplay.textContent = dateString; // Update display date
+
+            // Create a set of booked room identifiers for the given date
+            const bookedRoomIdentifiersToday = new Set();
+            bookingEntries.forEach(entry => {
+                if (entry.date === dateString) {
+                    const roomIdentifier = entry.room === 'อื่นๆ' ? entry.otherRoomDetails : entry.room;
+                    bookedRoomIdentifiersToday.add(roomIdentifier);
+                }
+            });
+
+            rooms.forEach((room, index) => {
+                const roomIcon = document.createElement('div');
+                roomIcon.classList.add('room-icon', 'p-4', 'rounded-lg', 'shadow-md', 'flex', 'flex-col', 'items-center', 'justify-center', 'text-center', 'font-semibold', 'text-sm', 'cursor-pointer');
+
+                let isRoomBooked = false;
+                if (room.value === 'อื่นๆ') {
+                    // For the "อื่นๆ" room icon, check if any booking with room 'อื่นๆ' exists for this date
+                    isRoomBooked = bookingEntries.some(entry => entry.date === dateString && entry.room === 'อื่นๆ');
+                } else {
+                    // For predefined rooms, check if their specific value is in the booked set
+                    isRoomBooked = bookedRoomIdentifiersToday.has(room.value);
+                }
+
+                if (isRoomBooked) {
+                    roomIcon.classList.add('bg-green-500', 'text-white', 'booked');
+                    roomIcon.classList.remove('bg-white', 'text-gray-800', 'available');
+                } else {
+                    roomIcon.classList.add('bg-white', 'text-gray-800', 'available');
+                    roomIcon.classList.remove('bg-green-500', 'text-white', 'booked');
+                }
+
+                // Split label for better display in icon
+                const labelParts = room.label.split('. ');
+                const roomNumber = labelParts[0];
+                const roomName = labelParts.length > 1 ? labelParts[1] : room.label;
+
+                roomIcon.innerHTML = `
+                    <span class="text-lg mb-1">${roomNumber}.</span>
+                    <span class="text-xs">${roomName}</span>
+                `;
+                roomIconsContainer.appendChild(roomIcon);
+            });
+        }
+
+        /**
+         * Copies the content of a specified HTML element to the clipboard.
+         * @param {HTMLElement} element - The HTML element whose text content should be copied.
+         * @param {string} successMessage - Message to show on successful copy.
+         */
+        function copyToClipboard(element, successMessage) {
+            try {
+                const textToCopy = element.innerText || element.textContent;
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy'); // Deprecated but widely supported in iframes
+                document.body.removeChild(textarea);
+                showMessageBox(successMessage);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showMessageBox("ไม่สามารถคัดลอกได้: " + err.message, "error");
+            }
+        }
+
+        copyDailySummaryBtn.addEventListener('click', () => {
+            const summaryText = `สรุปการจองรายวันสำหรับ ${dailySummaryDateDisplay.textContent}:\n` +
+                                `การจองรวม: ${dailyTotalBookings.textContent} รายการ\n` +
+                                `ยืนยันแล้ว: ${dailyConfirmedBookings.textContent} รายการ\n` +
+                                `ยังไม่ยืนยัน: ${dailyPendingBookings.textContent} รายการ\n\n` +
+                                `รายละเอียด:\n` +
+                                Array.from(dailySummaryTableBody.rows).map(row =>
+                                    Array.from(row.cells).map(cell => cell.textContent).join('\t')
+                                ).join('\n');
+            copyToClipboard({ innerText: summaryText }, "คัดลอกสรุปรายวันเรียบร้อยแล้ว!");
+        });
+
+        copyWeeklySummaryBtn.addEventListener('click', () => {
+            const summaryText = `สรุปการจองรายสัปดาห์สำหรับ ${weeklySummaryWeekDisplay.textContent}:\n` +
+                                `การจองรวม: ${weeklyTotalBookings.textContent} รายการ\n` +
+                                `ยืนยันแล้ว: ${weeklyConfirmedBookings.textContent} รายการ\n` +
+                                `ยังไม่ยืนยัน: ${weeklyPendingBookings.textContent} รายการ\n\n` +
+                                `รายละเอียดรายวัน:\n` +
+                                Array.from(weeklySummaryTableBody.rows).map(row =>
+                                    Array.from(row.cells).map(cell => cell.textContent).join('\t')
+                                ).join('\n');
+            copyToClipboard({ innerText: summaryText }, "คัดลอกสรุปรายสัปดาห์เรียบร้อยแล้ว!");
+        });
+
+        copyMonthlySummaryBtn.addEventListener('click', () => {
+            const summaryText = `สรุปการจองรายเดือนสำหรับ ${monthlySummaryMonthDisplay.textContent}:\n` +
+                                `การจองรวม: ${monthlyTotalBookings.textContent} รายการ\n` +
+                                `ยืนยันแล้ว: ${monthlyConfirmedBookings.textContent} รายการ\n` +
+                                `ยังไม่ยืนยัน: ${monthlyPendingBookings.textContent} รายการ\n\n` +
+                                `รายละเอียดรายวัน:\n` +
+                                Array.from(monthlySummaryTableBody.rows).map(row =>
+                                    Array.from(row.cells).map(cell => cell.textContent).join('\t')
+                                ).join('\n');
+            copyToClipboard({ innerText: summaryText }, "คัดลอกสรุปรายเดือนเรียบร้อยแล้ว!");
+        });
+
+        copyYearlySummaryBtn.addEventListener('click', () => {
+            const summaryText = `สรุปการจองรายปีสำหรับ ${yearlySummaryYearDisplay.textContent}:\n` +
+                                `การจองรวม: ${yearlyTotalBookings.textContent} รายการ\n` +
+                                `ยืนยันแล้ว: ${yearlyConfirmedBookings.textContent} รายการ\n` +
+                                `ยังไม่ยืนยัน: ${yearlyPendingBookings.textContent} รายการ\n\n` +
+                                `รายละเอียดรายเดือน:\n` +
+                                Array.from(yearlySummaryTableBody.rows).map(row =>
+                                    Array.from(row.cells).map(cell => cell.textContent).join('\t')
+                                ).join('\n');
+            copyToClipboard({ innerText: summaryText }, "คัดลอกสรุปรายปีเรียบร้อยแล้ว!");
+        });
+
+
+        // Initialize the app
+        window.onload = () => {
+            populateRoomSelect();
+            loadEntries();
+            renderEntries();
+            // Set default date for input fields to today
+            const today = new Date();
+            bookingDateInput.value = today.toISOString().split('T')[0];
+            summaryDateInput.value = today.toISOString().split('T')[0];
+            summaryMonthInput.value = today.toISOString().slice(0, 7); // YYYY-MM
+            summaryYearInput.value = today.getFullYear();
+
+            // Set default week input
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const date = today.getDate();
+            const firstDayOfYear = new Date(year, 0, 1);
+            const days = Math.floor((today - firstDayOfYear) / (24 * 60 * 60 * 1000));
+            const weekNumber = Math.ceil((days + firstDayOfYear.getDay() + 1) / 7);
+            summaryWeekInput.value = `${year}-W${String(weekNumber).padStart(2, '0')}`;
+
+            // Initialize dashboard date
+            summaryDashboardDate.value = today.toISOString().split('T')[0];
+
+            renderDailySummary(summaryDateInput.value); // Render initial daily summary
+            renderDashboard(summaryDashboardDate.value); // Render initial dashboard
+        };
+    </script>
+</body>
+</html>
